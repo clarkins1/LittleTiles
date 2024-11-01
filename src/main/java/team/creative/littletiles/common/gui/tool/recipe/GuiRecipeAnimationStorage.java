@@ -25,14 +25,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import team.creative.creativecore.client.render.box.RenderBox;
 import team.creative.creativecore.common.gui.controls.tree.GuiTree;
 import team.creative.creativecore.common.gui.controls.tree.GuiTreeItem;
 import team.creative.creativecore.common.util.math.box.ABB;
 import team.creative.creativecore.common.util.math.box.BoxesVoxelShape;
 import team.creative.creativecore.common.util.math.vec.SmoothValue;
 import team.creative.creativecore.common.util.math.vec.Vec3d;
-import team.creative.creativecore.common.util.mc.ColorUtils;
 import team.creative.littletiles.client.render.overlay.PreviewRenderer;
 import team.creative.littletiles.common.grid.LittleGrid;
 import team.creative.littletiles.common.gui.AnimationPreview;
@@ -177,30 +175,35 @@ public class GuiRecipeAnimationStorage implements Iterable<Entry<GuiTreeItemStru
         if (hasOverlap()) {
             RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
             Tesselator tesselator = Tesselator.getInstance();
-            BufferBuilder bufferbuilder = tesselator.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+            BufferBuilder bufferBuilder = tesselator.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
             int colorAlpha = 102;
             LittleBoxesNoOverlap overlap = overlappingBoxes;
             LittleGrid grid = overlap.getGrid();
             for (Entry<BlockPos, ArrayList<LittleBox>> entry : overlap.generateBlockWise().entrySet()) {
                 pose.pushPose();
                 pose.translate(entry.getKey().getX(), entry.getKey().getY(), entry.getKey().getZ());
-                RenderSystem.applyModelViewMatrix();
-                
-                for (LittleBox box : entry.getValue()) {
-                    RenderBox renderBox = box.getRenderingBox(grid);
-                    
-                    RenderSystem.disableDepthTest();
-                    RenderSystem.lineWidth(4.0F);
-                    renderBox.renderLines(pose, bufferbuilder, colorAlpha);
-                    
-                    RenderSystem.enableDepthTest();
-                    RenderSystem.lineWidth(2.0F);
-                    renderBox.color = ColorUtils.RED;
-                    renderBox.renderLines(pose, bufferbuilder, colorAlpha);
-                }
+                for (LittleBox box : entry.getValue())
+                    box.getRenderingBox(grid).renderLines(pose, bufferBuilder, colorAlpha);
                 pose.popPose();
             }
-            BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+            
+            RenderSystem.disableDepthTest();
+            RenderSystem.lineWidth(4.0F);
+            BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+            
+            bufferBuilder = tesselator.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+            for (Entry<BlockPos, ArrayList<LittleBox>> entry : overlap.generateBlockWise().entrySet()) {
+                pose.pushPose();
+                pose.translate(entry.getKey().getX(), entry.getKey().getY(), entry.getKey().getZ());
+                for (LittleBox box : entry.getValue())
+                    box.getRenderingBox(grid).renderLines(pose, bufferBuilder, colorAlpha);
+                pose.popPose();
+            }
+            
+            RenderSystem.lineWidth(2.0F);
+            RenderSystem.setShaderColor(1, 0, 0, 1);
+            BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+            
             RenderSystem.disableDepthTest();
         }
         selected = null;

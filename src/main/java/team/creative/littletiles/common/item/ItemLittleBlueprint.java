@@ -27,7 +27,7 @@ import team.creative.littletiles.common.gui.tool.GuiConfigure;
 import team.creative.littletiles.common.gui.tool.recipe.GuiRecipe;
 import team.creative.littletiles.common.gui.tool.recipe.GuiRecipeSelection;
 import team.creative.littletiles.common.item.tooltip.IItemTooltip;
-import team.creative.littletiles.common.math.vec.LittleVec;
+import team.creative.littletiles.common.math.vec.LittleVecGrid;
 import team.creative.littletiles.common.packet.action.BlockPacket;
 import team.creative.littletiles.common.packet.action.BlockPacket.BlockPacketAction;
 import team.creative.littletiles.common.packet.item.SelectionModePacket;
@@ -85,6 +85,11 @@ public class ItemLittleBlueprint extends Item implements ILittlePlacer, IItemToo
     @Override
     public LittleGroup getLow(ItemStack stack) {
         return LittleGroup.loadLow(getContent(stack));
+    }
+    
+    @Override
+    public boolean shouldRenderInHand(ItemStack stack) {
+        return LittleGroup.shouldRenderInHand(getContent(stack));
     }
     
     @Override
@@ -158,12 +163,12 @@ public class ItemLittleBlueprint extends Item implements ILittlePlacer, IItemToo
     }
     
     @Override
-    public LittleVec getCachedSize(ItemStack stack) {
+    public LittleVecGrid getCachedSize(ItemStack stack) {
         return LittleGroup.getSize(getContent(stack));
     }
     
     @Override
-    public LittleVec getCachedMin(ItemStack stack) {
+    public LittleVecGrid getCachedMin(ItemStack stack) {
         return LittleGroup.getMin(getContent(stack));
     }
     

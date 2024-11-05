@@ -81,6 +81,11 @@ public class ItemPremadeStructure extends Item implements ILittlePlacer, IItemTo
         return LittlePremadeRegistry.getPreview(getPremadeId(stack)) != null;
     }
     
+    @Override
+    public boolean shouldRenderInHand(ItemStack stack) {
+        return hasTiles(stack);
+    }
+    
     public void removeUnnecessaryData(ItemStack stack) {
         var data = ILittleTool.getData(stack);
         if (!data.isEmpty()) {

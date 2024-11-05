@@ -28,7 +28,7 @@ import team.creative.littletiles.common.gui.tool.GuiConfigure;
 import team.creative.littletiles.common.gui.tool.GuiModeSelector;
 import team.creative.littletiles.common.item.tooltip.IItemTooltip;
 import team.creative.littletiles.common.math.box.LittleBox;
-import team.creative.littletiles.common.math.vec.LittleVec;
+import team.creative.littletiles.common.math.vec.LittleVecGrid;
 import team.creative.littletiles.common.placement.PlacementPosition;
 import team.creative.littletiles.common.placement.PlacementPreview;
 import team.creative.littletiles.common.placement.mode.PlacementMode;
@@ -90,6 +90,11 @@ public class ItemMultiTiles extends Item implements ILittlePlacer, IItemTooltip 
     }
     
     @Override
+    public boolean shouldRenderInHand(ItemStack stack) {
+        return LittleGroup.shouldRenderInHand(ILittleTool.getData(stack));
+    }
+    
+    @Override
     public PlacementPreview getPlacement(Player player, Level level, ItemStack stack, PlacementPosition position, boolean allowLowResolution) {
         return PlacementPreview.relative(level, stack, position, allowLowResolution);
     }
@@ -128,12 +133,12 @@ public class ItemMultiTiles extends Item implements ILittlePlacer, IItemTooltip 
     }
     
     @Override
-    public LittleVec getCachedSize(ItemStack stack) {
+    public LittleVecGrid getCachedSize(ItemStack stack) {
         return LittleGroup.getSize(ILittleTool.getData(stack));
     }
     
     @Override
-    public LittleVec getCachedMin(ItemStack stack) {
+    public LittleVecGrid getCachedMin(ItemStack stack) {
         return LittleGroup.getMin(ILittleTool.getData(stack));
     }
     

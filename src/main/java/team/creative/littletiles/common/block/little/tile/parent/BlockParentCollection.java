@@ -210,7 +210,7 @@ public class BlockParentCollection extends ParentCollection {
     }
     
     public boolean hasCollisionListener() {
-        if (checkCollision() && LittleStructureAttribute.collisionListener(attributes))
+        if (checkCollision() || LittleStructureAttribute.collisionListener(attributes))
             return true;
         for (StructureParentCollection child : structures.values())
             if (child.checkCollision())

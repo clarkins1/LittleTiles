@@ -3,10 +3,9 @@ package team.creative.littletiles.client.mod.embeddium.buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.embeddedt.embeddium.impl.gl.attribute.GlVertexFormat;
-import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
-import org.embeddedt.embeddium.impl.render.chunk.data.SectionRenderDataUnsafe;
-
+import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexFormat;
+import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
+import net.caffeinemc.mods.sodium.client.render.chunk.data.SectionRenderDataUnsafe;
 import team.creative.littletiles.client.render.cache.buffer.ChunkBufferDownloader;
 
 public class EmbeddiumChunkBufferDownloader implements ChunkBufferDownloader {
@@ -15,10 +14,10 @@ public class EmbeddiumChunkBufferDownloader implements ChunkBufferDownloader {
     
     public EmbeddiumChunkBufferDownloader() {}
     
-    public void set(long data, GlVertexFormat format, int offset, ByteBuffer buffer) {
+    public void set(long data, GlVertexFormat format, long offset, ByteBuffer buffer) {
         for (int i = 0; i < buffers.length; i++) {
-            int count = SectionRenderDataUnsafe.getElementCount(data, i);
-            buffers[i] = buffer.slice((SectionRenderDataUnsafe.getVertexOffset(data, i) - offset) * format.getStride(), count / 6 * 4 * format.getStride());
+            long count = SectionRenderDataUnsafe.getElementCount(data, i);
+            buffers[i] = buffer.slice((int) ((SectionRenderDataUnsafe.getVertexOffset(data, i) - offset) * format.getStride()), (int) (count / 6 * 4 * format.getStride()));
         }
     }
     

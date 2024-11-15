@@ -4,8 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-import org.embeddedt.embeddium.impl.render.EmbeddiumWorldRenderer;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkMeshAttribute;
 import org.lwjgl.opengl.GL15C;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,6 +22,7 @@ import net.caffeinemc.mods.sodium.client.gl.buffer.GlBufferTarget;
 import net.caffeinemc.mods.sodium.client.gl.device.CommandList;
 import net.caffeinemc.mods.sodium.client.gl.device.RenderDevice;
 import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
+import net.caffeinemc.mods.sodium.client.render.SodiumWorldRenderer;
 import net.caffeinemc.mods.sodium.client.render.chunk.RenderSection;
 import net.caffeinemc.mods.sodium.client.render.chunk.RenderSectionFlags;
 import net.caffeinemc.mods.sodium.client.render.chunk.RenderSectionManager;
@@ -105,7 +104,7 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
     
     @Override
     public void markReadyForUpdate(boolean playerChanged) {
-        ((EmbeddiumWorldRendererAccessor) EmbeddiumWorldRenderer.instance()).getRenderSectionManager().scheduleRebuild(chunkX, chunkY, chunkZ, playerChanged);
+        ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager().scheduleRebuild(chunkX, chunkY, chunkZ, playerChanged);
     }
     
     @Override
@@ -140,8 +139,8 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
     }
     
     public RenderRegion getRenderRegion() {
-        return ((RenderSectionManagerAccessor) ((EmbeddiumWorldRendererAccessor) EmbeddiumWorldRenderer.instance()).getRenderSectionManager()).getRegions().createForChunk(chunkX,
-            chunkY, chunkZ);
+        return ((RenderSectionManagerAccessor) ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager()).getRegions().createForChunk(chunkX, chunkY,
+            chunkZ);
     }
     
     @Override
@@ -173,7 +172,7 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
     
     public ByteBuffer downloadSegment(GlBufferSegment segment, GlVertexFormat format) {
         GlBuffer buffer = ((GlBufferSegmentAccessor) segment).getArena().getBufferObject();
-        return downloadUploadedData((VertexBufferExtender) buffer, segment.getOffset() * format.getStride(), segment.getLength() * format.getStride());
+        return downloadUploadedData((VertexBufferExtender) buffer, segment.getOffset() * format.getStride(), (int) (segment.getLength() * format.getStride()));
     }
     
     @Override
@@ -185,9 +184,9 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
         
         Runnable run = () -> {
             EmbeddiumChunkBufferDownloader downloader = new EmbeddiumChunkBufferDownloader();
-            RenderSectionManager manager = ((EmbeddiumWorldRendererAccessor) EmbeddiumWorldRenderer.instance()).getRenderSectionManager();
+            RenderSectionManager manager = ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager();
             ChunkBuilderAccessor chunkBuilder = (ChunkBuilderAccessor) manager.getBuilder();
-            GlVertexFormat<ChunkMeshAttribute> format = ((ChunkBuildBuffersAccessor) chunkBuilder.getLocalContext().buffers).getVertexType().getVertexFormat();
+            GlVertexFormat format = ((ChunkBuildBuffersAccessor) chunkBuilder.getLocalContext().buffers).getVertexType().getVertexFormat();
             for (Tuple<RenderType, BufferCollection> tuple : caches.tuples()) {
                 SectionRenderDataStorage storage = region.getStorage(DefaultMaterials.forRenderLayer(tuple.key).pass);
                 if (storage == null)
@@ -223,10 +222,10 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
     
     @Override
     public boolean appendRenderData(Iterable<? extends LayeredBufferCache> blocks) {
-        RenderSectionManager manager = ((EmbeddiumWorldRendererAccessor) EmbeddiumWorldRenderer.instance()).getRenderSectionManager();
+        RenderSectionManager manager = ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager();
         RenderRegion region = getRenderRegion();
         ChunkBuilderAccessor chunkBuilder = (ChunkBuilderAccessor) manager.getBuilder();
-        GlVertexFormat<ChunkMeshAttribute> format = ((ChunkBuildBuffersAccessor) chunkBuilder.getLocalContext().buffers).getVertexType().getVertexFormat();
+        GlVertexFormat format = ((ChunkBuildBuffersAccessor) chunkBuilder.getLocalContext().buffers).getVertexType().getVertexFormat();
         EmbeddiumChunkBufferUploader uploader = new EmbeddiumChunkBufferUploader();
         
         for (RenderType layer : RenderType.chunkBufferLayers()) {
@@ -260,7 +259,7 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
             uploader.set(storage.getDataPointer(sectionIndex), format, segment.getOffset(), vanillaBuffer, size, extraLengthFacing, null);
             
             if (segment != null) // Meshes needs to be removed after the uploader has collected the data
-                storage.removeMeshes(sectionIndex);
+                storage.removeData(sectionIndex);
             
             for (LayeredBufferCache layeredCache : blocks) {
                 BufferCache cache = layeredCache.get(layer);
@@ -284,9 +283,9 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
             
             boolean bufferChanged = arena.upload(commandList, Stream.of(upload));
             if (bufferChanged)
-                region.refresh(commandList);
+                region.refreshTesselation(commandList);
             
-            storage.setMeshes(sectionIndex, upload.getResult(), null, uploader.ranges());
+            storage.setVertexData(sectionIndex, upload.getResult(), uploader.ranges());
             
             if (!active)
                 RenderDevice.exitManagedCode();

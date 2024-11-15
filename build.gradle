@@ -52,8 +52,8 @@ runs {
 dependencies {
     implementation "net.neoforged:neoforge:${forge_version}"
     
-    implementation "maven.modrinth:sodium:r0Cvb6jf"
-    implementation "curse.maven:theoneprobe-245211:5502323"
+    compileOnly "maven.modrinth:sodium:r0Cvb6jf"
+    compileOnly "curse.maven:theoneprobe-245211:5502323"
     
     implementation project(':CreativeCore')
     

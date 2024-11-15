@@ -5,26 +5,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.embeddedt.embeddium.impl.Embeddium;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkMeshAttribute;
-import org.lwjgl.system.MemoryUtil;
-
-import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexAttributeFormat;
 import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
-import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
-import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexEncoder;
-import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
-import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.impl.CompactChunkVertex;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.phys.Vec3;
-import team.creative.littletiles.client.mod.embeddium.pipeline.LittleRenderPipelineEmbeddium;
 import team.creative.littletiles.client.render.cache.buffer.BufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferHolder;
 import team.creative.littletiles.client.render.cache.buffer.ChunkBufferDownloader;
 import team.creative.littletiles.client.render.cache.buffer.ChunkBufferUploader;
-import team.creative.littletiles.mixin.embeddium.ChunkMeshBufferBuilderAccessor;
-import team.creative.littletiles.mixin.embeddium.CompactChunkVertexAccessor;
-import team.creative.littletiles.mixin.embeddium.TranslucentQuadAnalyzerAccessor;
 
 public class EmbeddiumBufferCache implements BufferCache {
     
@@ -85,7 +72,7 @@ public class EmbeddiumBufferCache implements BufferCache {
         if (buffer == null)
             return;
         
-        long ptr = MemoryUtil.memAddress(buffer);
+        /*long ptr = MemoryUtil.memAddress(buffer); TODO Readd translucent stuff
         int i = 0;
         while (i < buffer.limit()) {
             float x = CompactChunkVertex.decodePosition(MemoryUtil.memGetShort(ptr + 0));
@@ -96,17 +83,17 @@ public class EmbeddiumBufferCache implements BufferCache {
             MemoryUtil.memPutShort(ptr + 4, CompactChunkVertexAccessor.callEncodePosition(z + (float) vec.z));
             ptr += CompactChunkVertex.STRIDE;
             i += CompactChunkVertex.STRIDE;
-        }
+        }*/
     }
     
     @Override
     public void applyOffset(Vec3 vec) {
-        if (Embeddium.canUseVanillaVertices()) {
+        /*if (SodiumOptions.canUseVanillaVertices()) { TODO Think about if this is an option in Sodium
             for (int i = 0; i < buffers.length; i++)
                 if (buffers[i] != null)
                     buffers[i].applyOffset(vec);
             return;
-        }
+        }*/
         for (int i = 0; i < buffers.length; i++)
             if (buffers[i] != null)
                 applyEmbeddiumOffset(buffers[i].byteBuffer(), vec);
@@ -164,9 +151,9 @@ public class EmbeddiumBufferCache implements BufferCache {
             uploader.addSprite(texture);
         
         if (uploader.hasFacingSupport()) {
-            if (uploader.isSorted()) {
+            /*if (uploader.isSorted()) { TODO Readd Translucent stuff
                 ChunkMeshBufferBuilderAccessor builder = (ChunkMeshBufferBuilderAccessor) ((ChunkModelBuilder) uploader).getVertexBuffer(ModelQuadFacing.UNASSIGNED);
-                var centers = ((TranslucentQuadAnalyzerAccessor) builder.getAnalyzer()).getQuadCenters();
+                //var centers = ((TranslucentQuadAnalyzerAccessor) builder.getAnalyzer()).getQuadCenters();
                 int index = ModelQuadFacing.UNASSIGNED.ordinal();
                 if (buffers[index] == null || buffers[index].byteBuffer() == null)
                     return false;
@@ -175,7 +162,7 @@ public class EmbeddiumBufferCache implements BufferCache {
                 if (buffer == null) { // Recalculate centers
                     ChunkVertexType type = LittleRenderPipelineEmbeddium.getType();
                     ByteBuffer renderData = buffers[index].byteBuffer();
-                    var positionAttribute = type.getVertexFormat().getAttribute(ChunkMeshAttribute.POSITION_MATERIAL_MESH);
+                    var positionAttribute = type.getVertexFormat().getAttribute(DefaultChunkMeshAttributes.POSITION);
                     boolean compact = positionAttribute.getFormat() == GlVertexAttributeFormat.UNSIGNED_SHORT.typeId();
                     int stride = type.getVertexFormat().getStride();
                     int strideRemaining = stride - (compact ? GlVertexAttributeFormat.UNSIGNED_SHORT.size() : GlVertexAttributeFormat.FLOAT.size()) * 3;
@@ -208,7 +195,7 @@ public class EmbeddiumBufferCache implements BufferCache {
                 buffers[0] = null;
                 
                 return buffers[index].upload(index, uploader);
-            }
+            }*/
             for (int i = 0; i < buffers.length; i++)
                 if (buffers[i] != null && !buffers[i].upload(i, uploader))
                     return false;

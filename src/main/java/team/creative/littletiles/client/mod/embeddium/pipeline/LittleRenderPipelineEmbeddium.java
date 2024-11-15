@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.embeddedt.embeddium.impl.render.EmbeddiumWorldRenderer;
 import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -25,6 +24,7 @@ import net.caffeinemc.mods.sodium.client.model.light.data.QuadLightData;
 import net.caffeinemc.mods.sodium.client.model.quad.BakedQuadView;
 import net.caffeinemc.mods.sodium.client.model.quad.ModelQuadView;
 import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
+import net.caffeinemc.mods.sodium.client.render.SodiumWorldRenderer;
 import net.caffeinemc.mods.sodium.client.render.chunk.RenderSectionManager;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
@@ -34,6 +34,7 @@ import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.DefaultMa
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.Material;
 import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
 import net.caffeinemc.mods.sodium.client.render.texture.SpriteUtil;
+import net.caffeinemc.mods.sodium.client.world.LevelSlice;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -45,7 +46,6 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.model.data.ModelData;
 import team.creative.creativecore.common.util.math.base.Facing;
 import team.creative.creativecore.common.util.math.vec.Vec3d;
 import team.creative.creativecore.common.util.mc.ColorUtils;
@@ -56,7 +56,7 @@ import team.creative.creativecore.common.util.type.map.ChunkLayerMap;
 import team.creative.littletiles.LittleTiles;
 import team.creative.littletiles.client.mod.embeddium.EmbeddiumInteractor;
 import team.creative.littletiles.client.mod.embeddium.buffer.EmbeddiumBufferCache;
-import team.creative.littletiles.client.mod.embeddium.level.LittleLevelSlice;
+import team.creative.littletiles.client.mod.embeddium.level.LittleLevelSliceExtender;
 import team.creative.littletiles.client.render.cache.buffer.BufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferHolder;
 import team.creative.littletiles.client.render.cache.build.RenderingBlockContext;
@@ -70,15 +70,14 @@ import team.creative.littletiles.mixin.embeddium.BlockRendererAccessor;
 import team.creative.littletiles.mixin.embeddium.ChunkBuildBuffersAccessor;
 import team.creative.littletiles.mixin.embeddium.ChunkBuilderAccessor;
 import team.creative.littletiles.mixin.embeddium.ChunkMeshBufferBuilderAccessor;
-import team.creative.littletiles.mixin.embeddium.EmbeddiumWorldRendererAccessor;
 import team.creative.littletiles.mixin.embeddium.RenderSectionManagerAccessor;
-import team.creative.littletiles.mixin.embeddium.TranslucentQuadAnalyzerAccessor;
+import team.creative.littletiles.mixin.embeddium.SodiumWorldRendererAccessor;
 
 public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
     
     public static RenderChunkExtender getChunk(long pos) {
-        return (RenderChunkExtender) ((RenderSectionManagerAccessor) ((EmbeddiumWorldRendererAccessor) EmbeddiumWorldRenderer.instance()).getRenderSectionManager())
-                .callGetRenderSection(SectionPos.x(pos), SectionPos.y(pos), SectionPos.z(pos));
+        return (RenderChunkExtender) ((RenderSectionManagerAccessor) ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager()).callGetRenderSection(
+            SectionPos.x(pos), SectionPos.y(pos), SectionPos.z(pos));
     }
     
     public static ChunkVertexType getType() {
@@ -87,15 +86,16 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
     
     private ChunkBuildBuffers buildBuffers;
     private ChunkVertexType type;
-    private LittleLevelSlice slice = new LittleLevelSlice();
+    private final LevelSlice slice = LittleLevelSliceExtender.create();
     private BlockRenderer renderer;
     private LittleLightDataAccess lightAccess;
     private LightPipelineProvider lighters;
     private QuadLightData cachedQuadLightData = new QuadLightData();
-    public BlockRenderContext context = new BlockRenderContext(null);
+    public BlockRenderContext context = new BlockRenderContext(slice, null);
     private Set<TextureAtlasSprite> sprites = new ObjectOpenHashSet<>();
     private MutableBlockPos modelOffset = new MutableBlockPos();
     private IntArrayList[] indexes;
+    private MutableBlockPos scratchColorPos = new MutableBlockPos();
     private int[] faceCounters = new int[ModelQuadFacing.COUNT];
     private int[] colors = new int[4];
     private Vec3d cubeCenter = new Vec3d();
@@ -115,7 +115,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
         while (renderLevel instanceof LittleSubLevel sub && !sub.shouldUseLightingForRenderig())
             renderLevel = sub.getParent();
         
-        slice.parent = renderLevel;
+        ((LittleLevelSliceExtender) (Object) slice).setLevel(renderLevel);
         ((BlockRenderContextAccessor) context).setSlice(slice);
         
         BlockPos pos = data.be.getBlockPos();
@@ -153,7 +153,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
                 LittleRenderBox cube = iterator.next();
                 BlockState state = cube.state;
                 
-                context.update(pos, modelOffset, state, null, 0, ModelData.EMPTY, entry.key);
+                context.update(pos, modelOffset, state, null, 0);
                 //OculusManager.setLocalPos(buildBuffers, pos);
                 cubeCenter.set((cube.maxX + cube.minX) * 0.5, (cube.maxY + cube.minY) * 0.5, (cube.maxZ + cube.minZ) * 0.5);
                 
@@ -179,7 +179,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
                         Direction direction = facing.toVanilla();
                         
                         for (BakedQuad quad : quads) {
-                            lighter.calculate((ModelQuadView) quad, pos, cachedQuadLightData, direction, ((BakedQuadView) quad).getLightFace(), quad.isShade());
+                            lighter.calculate((ModelQuadView) quad, pos, cachedQuadLightData, direction, ((BakedQuadView) quad).getLightFace(), quad.isShade(), true);
                             
                             if (cube.color != -1) {
                                 int color = ColorABGR.pack(ColorUtils.red(cube.color), ColorUtils.green(cube.color), ColorUtils.blue(cube.color), ColorUtils.alpha(cube.color));
@@ -188,7 +188,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
                                 if (colorizer == null)
                                     colorizer = colorProvider.getColorProvider(state.getBlock());
                                 
-                                colorizer.getColors(slice, pos, state, (ModelQuadView) quad, colors);
+                                colorizer.getColors(slice, pos, scratchColorPos, state, (ModelQuadView) quad, colors);
                             } else
                                 Arrays.fill(colors, -1);
                             
@@ -211,7 +211,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
             BufferHolder[] holders = new BufferHolder[ModelQuadFacing.COUNT];
             int count = indexes[0].size() / 2;
             for (int i = 0; i < indexes.length; i++) {
-                if (material.pass.isSorted() && i != ModelQuadFacing.UNASSIGNED.ordinal())
+                if (material.pass.isTranslucent() && i != ModelQuadFacing.UNASSIGNED.ordinal())
                     continue;
                 ChunkMeshBufferBuilderAccessor v = (ChunkMeshBufferBuilderAccessor) builder.getVertexBuffer(ModelQuadFacing.VALUES[i]);
                 if (v.getCount() > 0) {
@@ -223,15 +223,15 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
                     holders[i] = new BufferHolder(buffer, buffer.limit(), v.getCount(), indexes[i].toIntArray());
                     indexes[i].clear();
                     
-                    if (material.pass.isSorted()) {
-                        var centers = ((TranslucentQuadAnalyzerAccessor) v.getAnalyzer()).getQuadCenters();
+                    /*if (material.pass.isTranslucent()) { TODO Properly implement translucent stuff
+                        var centers = ((TranslucentQuadAnalyzerAccessor) context.collector).getQuadCenters();
                         ByteBuffer centerBuffer = ByteBuffer.allocateDirect(centers.size() * 4);
                         for (int j = 0; j < centers.size(); j++)
                             centerBuffer.putFloat(centers.getFloat(j));
                         centerBuffer.rewind();
                         holders[0] = new BufferHolder(centerBuffer, 0, 0, null);
                         centers.clear(); // Reset for next renderer
-                    }
+                    }*/
                 }
             }
             
@@ -239,12 +239,12 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
             sprites.clear();
         }
         
-        slice.parent = null;
+        ((LittleLevelSliceExtender) (Object) slice).setLevel(null);
     }
     
     @Override
     public void reload() {
-        RenderSectionManager manager = ((EmbeddiumWorldRendererAccessor) EmbeddiumWorldRenderer.instance()).getRenderSectionManager();
+        RenderSectionManager manager = ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager();
         if (manager == null) {
             buildBuffers = null;
             renderer = null;

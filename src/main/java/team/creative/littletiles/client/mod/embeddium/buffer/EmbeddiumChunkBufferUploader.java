@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.embeddedt.embeddium.impl.gl.util.VertexRange;
-
 import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexFormat;
 import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
 import net.caffeinemc.mods.sodium.client.render.chunk.data.SectionRenderDataUnsafe;
@@ -18,19 +16,19 @@ public class EmbeddiumChunkBufferUploader implements ChunkBufferUploader {
     
     private ByteBuffer[] buffers = new ByteBuffer[ModelQuadFacing.COUNT];
     private NativeBuffer buffer;
-    private VertexRange[] ranges = new VertexRange[ModelQuadFacing.COUNT];
+    private int[] ranges = new int[ModelQuadFacing.COUNT];
     private List<TextureAtlasSprite> sprites;
     
     public EmbeddiumChunkBufferUploader() {}
     
-    public void set(long data, GlVertexFormat format, int offset, ByteBuffer exisitingData, int extraLength, int[] extraLengthFacing, TextureAtlasSprite[] existing) {
+    public void set(long data, GlVertexFormat format, long offset, ByteBuffer exisitingData, int extraLength, int[] extraLengthFacing, TextureAtlasSprite[] existing) {
         buffer = new NativeBuffer((exisitingData != null ? exisitingData.limit() : 0) + extraLength);
         ByteBuffer buffer = this.buffer.getDirectBuffer();
         
         int currentOffset = 0;
         for (int i = 0; i < buffers.length; i++) {
-            int originalStart = (SectionRenderDataUnsafe.getVertexOffset(data, i) - offset) * format.getStride();
-            int originalLength = SectionRenderDataUnsafe.getElementCount(data, i) / 6 * 4 * format.getStride();
+            int originalStart = (int) ((SectionRenderDataUnsafe.getVertexOffset(data, i) - offset) * format.getStride());
+            int originalLength = (int) (SectionRenderDataUnsafe.getElementCount(data, i) / 6 * 4 * format.getStride());
             
             int newStart = originalStart + currentOffset;
             int newLength = originalLength + extraLengthFacing[i];
@@ -41,7 +39,7 @@ public class EmbeddiumChunkBufferUploader implements ChunkBufferUploader {
             buffers[i].position(originalLength);
             
             currentOffset += extraLengthFacing[i];
-            ranges[i] = new VertexRange(newStart / format.getStride(), newLength / format.getStride());
+            ranges[i] = newLength / format.getStride();
         }
         
         if (existing != null) {
@@ -98,7 +96,7 @@ public class EmbeddiumChunkBufferUploader implements ChunkBufferUploader {
         return sprites.toArray(new TextureAtlasSprite[sprites.size()]);
     }
     
-    public VertexRange[] ranges() {
+    public int[] ranges() {
         return ranges;
     }
     

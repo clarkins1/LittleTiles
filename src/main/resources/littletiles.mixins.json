@@ -68,19 +68,18 @@
         "embeddium.ChunkBuilderMeshingTaskMixin",
         "embeddium.ChunkMeshBufferBuilderAccessor",
         "embeddium.ChunkModelBuilderMixin",
-        "embeddium.CompactChunkVertexAccessor",
         "embeddium.DefaultChunkRendererMixin",
-        "embeddium.EmbeddiumWorldRendererAccessor",
+        "embeddium.SodiumWorldRendererAccessor",
         "embeddium.GlBufferMixin",
         "embeddium.GlBufferSegmentAccessor",
         "embeddium.GLRenderDeviceAccessor",
+        "embeddium.LevelSliceMixin",
         "embeddium.PendingSectionUploadAccessor",
         "embeddium.RenderRegionManagerMixin",
         "embeddium.RenderSectionManagerAccessor",
         "embeddium.RenderSectionMixin",
         "embeddium.SectionRenderDataStorageAccessor",
-        "embeddium.TerrainRenderPassAccessor",
-        "embeddium.TranslucentQuadAnalyzerAccessor"
+        "embeddium.TerrainRenderPassAccessor"
     ],
     "minVersion": "0.8"
 }

@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import team.creative.creativecore.common.level.ISubLevel;
 import team.creative.littletiles.client.level.little.FakeClientLevel;
-import team.creative.littletiles.client.mod.embeddium.EmbeddiumManager;
+import team.creative.littletiles.client.mod.sodium.SodiumManager;
 import team.creative.littletiles.client.render.cache.pipeline.LittleRenderPipelineType;
 import team.creative.littletiles.client.render.mc.RenderChunkExtender;
 import team.creative.littletiles.client.render.mc.ViewAreaExtender;
@@ -105,14 +105,14 @@ public abstract class RenderingLevelHandler {
     };
     
     public static RenderingLevelHandler of(Level level) {
-        if (EmbeddiumManager.installed())
+        if (SodiumManager.installed())
             if (level instanceof LittleLevel l && l.getRenderManager().isSmall())
                 if (l instanceof ISubLevel s && s.getParent() instanceof FakeClientLevel)
                     return ANIMATION;
                 else
-                    return EmbeddiumManager.RENDERING_ANIMATION;
+                    return SodiumManager.RENDERING_ANIMATION;
             else
-                return EmbeddiumManager.RENDERING_LEVEL;
+                return SodiumManager.RENDERING_LEVEL;
         if (level instanceof LittleLevel l)
             return l.getRenderManager().isSmall() ? ANIMATION : ENTITY;
         return VANILLA;

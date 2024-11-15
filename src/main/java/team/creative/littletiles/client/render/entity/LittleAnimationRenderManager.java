@@ -41,7 +41,7 @@ import team.creative.creativecore.common.util.type.map.ChunkLayerMap;
 import team.creative.littletiles.LittleTiles;
 import team.creative.littletiles.client.LittleTilesClient;
 import team.creative.littletiles.client.level.little.FakeClientLevel;
-import team.creative.littletiles.client.mod.embeddium.EmbeddiumManager;
+import team.creative.littletiles.client.mod.sodium.SodiumManager;
 import team.creative.littletiles.client.render.cache.buffer.BufferCollection;
 import team.creative.littletiles.client.render.cache.buffer.ChunkBufferUploader;
 import team.creative.littletiles.client.render.cache.pipeline.LittleRenderPipelineType;
@@ -54,8 +54,8 @@ import team.creative.littletiles.common.entity.animation.LittleAnimationLevel;
 public class LittleAnimationRenderManager extends LittleEntityRenderManager<LittleAnimationEntity> implements RenderChunkExtender {
     
     public static LittleEntityRenderManager of(LittleAnimationEntity entity) {
-        if (EmbeddiumManager.installed() && !(entity.level() instanceof FakeClientLevel))
-            return EmbeddiumManager.createRenderManager(entity);
+        if (SodiumManager.installed() && !(entity.level() instanceof FakeClientLevel))
+            return SodiumManager.createRenderManager(entity);
         return new LittleAnimationRenderManager(entity);
     }
     

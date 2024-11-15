@@ -4,10 +4,10 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Set;
 
-import org.embeddedt.embeddium.impl.gl.attribute.GlVertexFormat;
 import org.lwjgl.system.MemoryUtil;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexFormat;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import team.creative.littletiles.client.render.cache.buffer.BufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferCollection;

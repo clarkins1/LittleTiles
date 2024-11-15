@@ -1,8 +1,9 @@
 package team.creative.littletiles.mixin.embeddium;
 
-import org.embeddedt.embeddium.impl.render.chunk.compile.buffers.BakedChunkModelBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
+
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.BakedChunkModelBuilder;
 
 @Mixin(BakedChunkModelBuilder.class)
 public interface BakedChunkModelBuilderAccessor {

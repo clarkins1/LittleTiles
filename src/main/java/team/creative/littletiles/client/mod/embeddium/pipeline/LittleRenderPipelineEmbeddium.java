@@ -7,26 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.embeddedt.embeddium.api.render.chunk.BlockRenderContext;
-import org.embeddedt.embeddium.api.render.texture.SpriteUtil;
-import org.embeddedt.embeddium.api.util.ColorABGR;
-import org.embeddedt.embeddium.impl.model.color.ColorProvider;
-import org.embeddedt.embeddium.impl.model.color.ColorProviderRegistry;
-import org.embeddedt.embeddium.impl.model.light.LightMode;
-import org.embeddedt.embeddium.impl.model.light.LightPipeline;
-import org.embeddedt.embeddium.impl.model.light.LightPipelineProvider;
-import org.embeddedt.embeddium.impl.model.light.data.QuadLightData;
-import org.embeddedt.embeddium.impl.model.quad.BakedQuadView;
-import org.embeddedt.embeddium.impl.model.quad.ModelQuadView;
-import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
 import org.embeddedt.embeddium.impl.render.EmbeddiumWorldRenderer;
-import org.embeddedt.embeddium.impl.render.chunk.RenderSectionManager;
-import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildBuffers;
-import org.embeddedt.embeddium.impl.render.chunk.compile.buffers.ChunkModelBuilder;
-import org.embeddedt.embeddium.impl.render.chunk.compile.pipeline.BlockRenderer;
-import org.embeddedt.embeddium.impl.render.chunk.terrain.material.DefaultMaterials;
-import org.embeddedt.embeddium.impl.render.chunk.terrain.material.Material;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkVertexType;
 import org.lwjgl.system.MemoryUtil;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -34,6 +15,25 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import net.caffeinemc.mods.sodium.api.util.ColorABGR;
+import net.caffeinemc.mods.sodium.client.model.color.ColorProvider;
+import net.caffeinemc.mods.sodium.client.model.color.ColorProviderRegistry;
+import net.caffeinemc.mods.sodium.client.model.light.LightMode;
+import net.caffeinemc.mods.sodium.client.model.light.LightPipeline;
+import net.caffeinemc.mods.sodium.client.model.light.LightPipelineProvider;
+import net.caffeinemc.mods.sodium.client.model.light.data.QuadLightData;
+import net.caffeinemc.mods.sodium.client.model.quad.BakedQuadView;
+import net.caffeinemc.mods.sodium.client.model.quad.ModelQuadView;
+import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
+import net.caffeinemc.mods.sodium.client.render.chunk.RenderSectionManager;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderContext;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
+import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.DefaultMaterials;
+import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.Material;
+import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
+import net.caffeinemc.mods.sodium.client.render.texture.SpriteUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -56,7 +56,7 @@ import team.creative.creativecore.common.util.type.map.ChunkLayerMap;
 import team.creative.littletiles.LittleTiles;
 import team.creative.littletiles.client.mod.embeddium.EmbeddiumInteractor;
 import team.creative.littletiles.client.mod.embeddium.buffer.EmbeddiumBufferCache;
-import team.creative.littletiles.client.mod.embeddium.level.LittleWorldSlice;
+import team.creative.littletiles.client.mod.embeddium.level.LittleLevelSlice;
 import team.creative.littletiles.client.render.cache.buffer.BufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferHolder;
 import team.creative.littletiles.client.render.cache.build.RenderingBlockContext;
@@ -87,7 +87,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
     
     private ChunkBuildBuffers buildBuffers;
     private ChunkVertexType type;
-    private LittleWorldSlice slice = new LittleWorldSlice();
+    private LittleLevelSlice slice = new LittleLevelSlice();
     private BlockRenderer renderer;
     private LittleLightDataAccess lightAccess;
     private LightPipelineProvider lighters;
@@ -116,8 +116,7 @@ public class LittleRenderPipelineEmbeddium extends LittleRenderPipeline {
             renderLevel = sub.getParent();
         
         slice.parent = renderLevel;
-        ((BlockRenderContextAccessor) context).setWorld(slice);
-        ((BlockRenderContextAccessor) context).setLocalSlice(slice);
+        ((BlockRenderContextAccessor) context).setSlice(slice);
         
         BlockPos pos = data.be.getBlockPos();
         

@@ -1,7 +1,6 @@
 package team.creative.littletiles.client.mod.embeddium.pipeline;
 
-import org.embeddedt.embeddium.impl.model.light.data.HashLightDataCache;
-
+import net.caffeinemc.mods.sodium.client.model.light.data.HashLightDataCache;
 import net.minecraft.world.level.BlockAndTintGetter;
 
 public class LittleLightDataAccess extends HashLightDataCache {
@@ -11,7 +10,7 @@ public class LittleLightDataAccess extends HashLightDataCache {
     }
     
     public void prepare(BlockAndTintGetter level) {
-        this.world = level;
+        this.level = level;
         clearCache();
     }
     

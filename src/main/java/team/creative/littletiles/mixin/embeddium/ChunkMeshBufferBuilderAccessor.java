@@ -2,12 +2,12 @@ package team.creative.littletiles.mixin.embeddium;
 
 import java.nio.ByteBuffer;
 
-import org.embeddedt.embeddium.impl.render.chunk.sorting.TranslucentQuadAnalyzer;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.builder.ChunkMeshBufferBuilder;
-import org.embeddedt.embeddium.impl.render.chunk.vertex.format.ChunkVertexEncoder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
+
+import net.caffeinemc.mods.sodium.client.render.chunk.vertex.builder.ChunkMeshBufferBuilder;
+import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexEncoder;
 
 @Mixin(ChunkMeshBufferBuilder.class)
 public interface ChunkMeshBufferBuilderAccessor {
@@ -32,8 +32,5 @@ public interface ChunkMeshBufferBuilderAccessor {
     
     @Accessor(remap = false)
     public ChunkVertexEncoder getEncoder();
-    
-    @Accessor(remap = false)
-    public TranslucentQuadAnalyzer getAnalyzer();
     
 }

@@ -1,8 +1,7 @@
 package team.creative.littletiles.client.mod.embeddium;
 
-import org.embeddedt.embeddium.impl.render.chunk.LocalSectionIndex;
-import org.embeddedt.embeddium.impl.render.chunk.region.RenderRegion;
-
+import net.caffeinemc.mods.sodium.client.render.chunk.LocalSectionIndex;
+import net.caffeinemc.mods.sodium.client.render.chunk.region.RenderRegion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.SectionPos;

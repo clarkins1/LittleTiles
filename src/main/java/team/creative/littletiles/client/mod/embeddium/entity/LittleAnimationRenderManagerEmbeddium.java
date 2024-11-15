@@ -6,10 +6,6 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import org.embeddedt.embeddium.impl.gl.attribute.GlVertexAttributeBinding;
-import org.embeddedt.embeddium.impl.gl.attribute.GlVertexFormat;
-import org.embeddedt.embeddium.impl.render.chunk.shader.ChunkShaderInterface;
-import org.embeddedt.embeddium.impl.render.viewport.CameraTransform;
 import org.joml.Matrix4fc;
 import org.lwjgl.opengl.GL20C;
 import org.lwjgl.opengl.GL30C;
@@ -23,6 +19,10 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat.IndexType;
 import com.mojang.blaze3d.vertex.VertexSorting;
 
+import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexAttributeBinding;
+import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexFormat;
+import net.caffeinemc.mods.sodium.client.render.chunk.shader.ChunkShaderInterface;
+import net.caffeinemc.mods.sodium.client.render.viewport.CameraTransform;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;

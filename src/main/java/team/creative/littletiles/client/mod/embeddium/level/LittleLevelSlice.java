@@ -12,11 +12,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
-public class LittleWorldSlice implements EmbeddiumBlockAndTintGetter {
+public class LittleLevelSlice implements EmbeddiumBlockAndTintGetter {
     
     public Level parent;
     
-    public LittleWorldSlice() {}
+    public LittleLevelSlice() {}
     
     @Override
     public BlockState getBlockState(BlockPos pos) {

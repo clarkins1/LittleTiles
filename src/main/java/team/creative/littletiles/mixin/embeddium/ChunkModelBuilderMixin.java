@@ -2,10 +2,10 @@ package team.creative.littletiles.mixin.embeddium;
 
 import java.nio.ByteBuffer;
 
-import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
-import org.embeddedt.embeddium.impl.render.chunk.compile.buffers.ChunkModelBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 
+import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import team.creative.littletiles.client.render.cache.buffer.ChunkBufferUploader;
 

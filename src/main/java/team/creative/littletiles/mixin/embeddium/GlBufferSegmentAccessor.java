@@ -1,9 +1,10 @@
 package team.creative.littletiles.mixin.embeddium;
 
-import org.embeddedt.embeddium.impl.gl.arena.GlBufferArena;
-import org.embeddedt.embeddium.impl.gl.arena.GlBufferSegment;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
+
+import net.caffeinemc.mods.sodium.client.gl.arena.GlBufferArena;
+import net.caffeinemc.mods.sodium.client.gl.arena.GlBufferSegment;
 
 @Mixin(GlBufferSegment.class)
 public interface GlBufferSegmentAccessor {

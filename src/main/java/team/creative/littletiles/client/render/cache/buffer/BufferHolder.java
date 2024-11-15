@@ -3,10 +3,9 @@ package team.creative.littletiles.client.render.cache.buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.embeddedt.embeddium.impl.model.quad.properties.ModelQuadFacing;
-
 import com.mojang.blaze3d.vertex.MeshData;
 
+import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
 import net.minecraft.world.phys.Vec3;
 import team.creative.creativecore.client.render.VertexFormatUtils;
 import team.creative.littletiles.mixin.client.render.ByteBufferBuilderResultAccessor;

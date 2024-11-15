@@ -1,17 +1,5 @@
 package team.creative.littletiles.mixin.embeddium;
 
-import org.embeddedt.embeddium.api.render.chunk.EmbeddiumBlockAndTintGetter;
-import org.embeddedt.embeddium.impl.render.chunk.RenderSection;
-import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildBuffers;
-import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildContext;
-import org.embeddedt.embeddium.impl.render.chunk.compile.ChunkBuildOutput;
-import org.embeddedt.embeddium.impl.render.chunk.compile.tasks.ChunkBuilderMeshingTask;
-import org.embeddedt.embeddium.impl.render.chunk.data.BuiltSectionMeshParts;
-import org.embeddedt.embeddium.impl.render.chunk.terrain.TerrainRenderPass;
-import org.embeddedt.embeddium.impl.render.chunk.terrain.material.DefaultMaterials;
-import org.embeddedt.embeddium.impl.util.task.CancellationToken;
-import org.embeddedt.embeddium.impl.world.WorldSlice;
-import org.embeddedt.embeddium.impl.world.cloned.ChunkRenderContext;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,6 +10,17 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import net.caffeinemc.mods.sodium.client.render.chunk.RenderSection;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildContext;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildOutput;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask;
+import net.caffeinemc.mods.sodium.client.render.chunk.data.BuiltSectionMeshParts;
+import net.caffeinemc.mods.sodium.client.render.chunk.terrain.TerrainRenderPass;
+import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.DefaultMaterials;
+import net.caffeinemc.mods.sodium.client.util.task.CancellationToken;
+import net.caffeinemc.mods.sodium.client.world.LevelSlice;
+import net.caffeinemc.mods.sodium.client.world.cloned.ChunkRenderContext;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -64,8 +63,8 @@ public class ChunkBuilderMeshingTaskMixin {
             remap = false, require = 1, at = @At(value = "INVOKE",
                     target = "Lorg/embeddedt/embeddium/impl/world/WorldSlice;getBlockEntity(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;",
                     remap = true))
-    public BlockEntity getBlockEntity(WorldSlice slice, BlockPos pos) {
-        BlockEntity entity = ((EmbeddiumBlockAndTintGetter) slice).getBlockEntity(pos);
+    public BlockEntity getBlockEntity(LevelSlice slice, BlockPos pos) {
+        BlockEntity entity = slice.getBlockEntity(pos);
         if (entity instanceof BETiles be)
             LittleRenderPipelineType.compile(SectionPos.asLong(render.getChunkX(), render.getChunkY(), render.getChunkZ()), be, x -> (ChunkBufferUploader) buildContext.buffers.get(
                 DefaultMaterials.forRenderLayer(x)), x -> getOrCreateBuffers(x));
@@ -83,9 +82,9 @@ public class ChunkBuilderMeshingTaskMixin {
     @Redirect(
             method = "execute(Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildContext;Lorg/embeddedt/embeddium/impl/util/task/CancellationToken;)Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildOutput;",
             remap = false, at = @At(value = "INVOKE",
-                    target = "Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildBuffers;createMesh(Lorg/embeddedt/embeddium/impl/render/chunk/terrain/TerrainRenderPass;)Lorg/embeddedt/embeddium/impl/render/chunk/data/BuiltSectionMeshParts;"))
-    public BuiltSectionMeshParts createMesh(ChunkBuildBuffers buffers, TerrainRenderPass pass) {
-        BuiltSectionMeshParts parts = buffers.createMesh(pass);
+                    target = "Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildBuffers;createMesh(Lorg/embeddedt/embeddium/impl/render/chunk/terrain/TerrainRenderPass;Z)Lorg/embeddedt/embeddium/impl/render/chunk/data/BuiltSectionMeshParts;"))
+    public BuiltSectionMeshParts createMesh(ChunkBuildBuffers buffers, TerrainRenderPass pass, boolean forceUnassigned) {
+        BuiltSectionMeshParts parts = buffers.createMesh(pass, forceUnassigned);
         if (parts != null && caches != null)
             ((BuiltSectionMeshPartsExtender) parts).setBuffers(caches.get(((TerrainRenderPassAccessor) pass).getLayer()));
         return parts;

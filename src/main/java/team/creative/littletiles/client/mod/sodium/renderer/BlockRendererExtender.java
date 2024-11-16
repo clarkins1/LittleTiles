@@ -6,6 +6,8 @@ import net.caffeinemc.mods.sodium.client.render.frapi.mesh.MutableQuadViewImpl;
 
 public interface BlockRendererExtender {
     
+    public void markAsTakenOver();
+    
     public ColorProviderRegistry colorRegistry();
     
     public MutableQuadViewImpl getEditorQuadAndClear();

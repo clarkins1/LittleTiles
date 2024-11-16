@@ -30,13 +30,18 @@ import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockRend
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.DefaultMaterials;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.Material;
+import net.caffeinemc.mods.sodium.client.render.chunk.translucent_sorting.TranslucentGeometryCollector;
 import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
+import net.caffeinemc.mods.sodium.client.render.frapi.SodiumRenderer;
 import net.caffeinemc.mods.sodium.client.render.frapi.helper.ColorHelper;
 import net.caffeinemc.mods.sodium.client.render.frapi.mesh.MutableQuadViewImpl;
+import net.caffeinemc.mods.sodium.client.render.frapi.render.AmbientOcclusionMode;
 import net.caffeinemc.mods.sodium.client.render.texture.SpriteUtil;
 import net.caffeinemc.mods.sodium.client.world.LevelSlice;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.material.ShadeMode;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -85,6 +90,8 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
         return RenderingThread.getOrCreate(SodiumInteractor.PIPELINE).type;
     }
     
+    private static final RenderMaterial[] STANDARD_MATERIALS;
+    private static final RenderMaterial TRANSLUCENT_MATERIAL;
     private ChunkBuildBuffers buildBuffers;
     private ChunkVertexType type;
     private final LevelSlice slice = LittleLevelSliceExtender.create();
@@ -100,6 +107,7 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
     private int[] faceCounters = new int[ModelQuadFacing.COUNT];
     private int[] colors = new int[4];
     private Vec3d cubeCenter = new Vec3d();
+    private TranslucentGeometryCollector collector = new TranslucentGeometryCollector(SectionPos.of(0, 0, 0));
     
     public LittleRenderPipelineSodium() {
         indexes = new IntArrayList[ModelQuadFacing.COUNT];
@@ -122,6 +130,8 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
         BlockPos pos = data.be.getBlockPos();
         
         lightAccess.prepare(renderLevel);
+        
+        renderer.prepare(buildBuffers, slice, collector);
         
         LightPipeline lighter = lighters.getLighter(Minecraft.useAmbientOcclusion() && data.state.getLightEmission(data.be.getLevel(),
             pos) == 0 ? LightMode.SMOOTH : LightMode.FLAT);
@@ -182,7 +192,8 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
                         Direction direction = facing.toVanilla();
                         
                         for (BakedQuad quad : quads) {
-                            editorQuad.fromVanilla(quad, null, direction);
+                            editorQuad.fromVanilla(quad, (entry.getKey() == RenderType.tripwire() || entry.getKey() == RenderType
+                                    .translucent()) ? TRANSLUCENT_MATERIAL : STANDARD_MATERIALS[AmbientOcclusionMode.DEFAULT.ordinal()], direction);
                             
                             RenderMaterial mat = editorQuad.material();
                             
@@ -265,6 +276,7 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
             sprites.clear();
         }
         
+        //collector.finishRendering();
         ((LittleLevelSliceExtender) (Object) slice).setLevel(null);
     }
     
@@ -282,11 +294,39 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
         buildBuffers.init(null, 0);
         renderer = new BlockRenderer(new ColorProviderRegistry(Minecraft.getInstance()
                 .getBlockColors()), lighters = new LightPipelineProvider(lightAccess = new LittleLightDataAccess()));
+        ((BlockRendererExtender) renderer).markAsTakenOver();
     }
     
     @Override
     public void release() {
         buildBuffers.destroy();
+    }
+    
+    static {
+        TRANSLUCENT_MATERIAL = SodiumRenderer.INSTANCE.materialFinder().blendMode(BlendMode.TRANSLUCENT).find();
+        STANDARD_MATERIALS = new RenderMaterial[AmbientOcclusionMode.values().length];
+        AmbientOcclusionMode[] values = AmbientOcclusionMode.values();
+        
+        for (int i = 0; i < values.length; ++i) {
+            TriState var10000;
+            switch (values[i]) {
+                case ENABLED:
+                    var10000 = TriState.TRUE;
+                    break;
+                case DISABLED:
+                    var10000 = TriState.FALSE;
+                    break;
+                case DEFAULT:
+                    var10000 = TriState.DEFAULT;
+                    break;
+                default:
+                    throw new MatchException((String) null, (Throwable) null);
+            }
+            
+            TriState state = var10000;
+            STANDARD_MATERIALS[i] = SodiumRenderer.INSTANCE.materialFinder().ambientOcclusion(state).find();
+        }
+        
     }
     
 }

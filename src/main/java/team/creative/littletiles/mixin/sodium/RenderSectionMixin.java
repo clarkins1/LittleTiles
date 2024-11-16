@@ -109,7 +109,8 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
     
     @Override
     public void markReadyForUpdate(boolean playerChanged) {
-        ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager().scheduleRebuild(chunkX, chunkY, chunkZ, playerChanged);
+        Minecraft.getInstance().execute(() -> ((SodiumWorldRendererAccessor) SodiumWorldRenderer.instance()).getRenderSectionManager().scheduleRebuild(chunkX, chunkY, chunkZ,
+            playerChanged));
     }
     
     @Override

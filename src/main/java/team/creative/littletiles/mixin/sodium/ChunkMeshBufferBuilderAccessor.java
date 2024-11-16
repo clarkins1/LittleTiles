@@ -19,13 +19,13 @@ public interface ChunkMeshBufferBuilderAccessor {
     public ByteBuffer getBuffer();
     
     @Accessor(remap = false)
-    public int getCount();
+    public int getVertexCount();
     
     @Accessor(remap = false)
-    public void setCount(int count);
+    public void setVertexCount(int count);
     
     @Accessor(remap = false)
-    public int getCapacity();
+    public int getVertexCapacity();
     
     @Invoker(remap = false)
     public void callGrow(int len);

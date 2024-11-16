@@ -6,11 +6,9 @@ import net.caffeinemc.mods.sodium.client.render.frapi.mesh.MutableQuadViewImpl;
 
 public interface BlockRendererExtender {
     
-    public boolean hasAmbientOcclusion();
-    
     public ColorProviderRegistry colorRegistry();
     
-    public MutableQuadViewImpl getEditorQuad();
+    public MutableQuadViewImpl getEditorQuadAndClear();
     
     public void callBufferQuad(MutableQuadViewImpl quad, float[] brightnesses, Material material);
 }

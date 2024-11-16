@@ -30,7 +30,7 @@ public interface ChunkModelBuilderMixin extends ChunkBufferUploader {
     @Override
     public default int uploadIndex(int facing) {
         ChunkMeshBufferBuilderAccessor vertex = (ChunkMeshBufferBuilderAccessor) ((ChunkModelBuilder) this).getVertexBuffer(ModelQuadFacing.VALUES[facing]);
-        return vertex.getCount() * vertex.getStride();
+        return vertex.getVertexCount() * vertex.getStride();
     }
     
     @Override
@@ -38,17 +38,17 @@ public interface ChunkModelBuilderMixin extends ChunkBufferUploader {
         ChunkMeshBufferBuilderAccessor vertex = (ChunkMeshBufferBuilderAccessor) ((ChunkModelBuilder) this).getVertexBuffer(ModelQuadFacing.VALUES[facing]);
         
         // Add to vertex buffer
-        int vertexStart = vertex.getCount();
+        int vertexStart = vertex.getVertexCount();
         int vertexCount = buffer.limit() / vertex.getStride();
-        if (vertexStart + vertexCount >= vertex.getCapacity())
+        if (vertexStart + vertexCount >= vertex.getVertexCapacity())
             vertex.callGrow(vertex.getStride() * vertexCount);
         ByteBuffer data = vertex.getBuffer();
-        int index = vertex.getCount() * vertex.getStride();
+        int index = vertex.getVertexCount() * vertex.getStride();
         data.position(index);
         data.put(buffer);
         buffer.rewind();
         data.rewind();
-        vertex.setCount(vertex.getCount() + vertexCount);
+        vertex.setVertexCount(vertex.getVertexCount() + vertexCount);
     }
     
     @Override

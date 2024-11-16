@@ -10,5 +10,5 @@ import net.caffeinemc.mods.sodium.client.render.chunk.data.SectionRenderDataStor
 public interface SectionRenderDataStorageAccessor {
     
     @Accessor(remap = false)
-    public GlBufferSegment[] getAllocations();
+    public GlBufferSegment[] getVertexAllocations();
 }

@@ -123,14 +123,13 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
         
         lightAccess.prepare(renderLevel);
         
-        LightPipeline lighter = lighters.getLighter(((BlockRendererExtender) renderer).hasAmbientOcclusion() && data.state.getLightEmission(data.be.getLevel(),
+        LightPipeline lighter = lighters.getLighter(Minecraft.useAmbientOcclusion() && data.state.getLightEmission(data.be.getLevel(),
             pos) == 0 ? LightMode.SMOOTH : LightMode.FLAT);
         
         ColorProviderRegistry colorProvider = ((BlockRendererExtender) renderer).colorRegistry();
         data.prepareModelOffset(modelOffset, pos);
         
-        MutableQuadViewImpl editorQuad = ((BlockRendererExtender) renderer).getEditorQuad();
-        editorQuad.clear();
+        MutableQuadViewImpl editorQuad = ((BlockRendererExtender) renderer).getEditorQuadAndClear();
         
         // Render vertex buffer
         for (Tuple<RenderType, IndexedCollector<LittleRenderBox>> entry : data.be.render.boxCache.tuples()) {
@@ -151,7 +150,7 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
                 for (int i = 0; i < indexes.length; i++) {
                     indexes[i].add(x);
                     ChunkMeshBufferBuilderAccessor a = (ChunkMeshBufferBuilderAccessor) builder.getVertexBuffer(ModelQuadFacing.VALUES[i]);
-                    indexes[i].add(a.getCount() * a.getStride());
+                    indexes[i].add(a.getVertexCount() * a.getStride());
                 }
             });iterator.hasNext();) {
                 LittleRenderBox cube = iterator.next();
@@ -241,13 +240,13 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
                 if (material.pass.isTranslucent() && i != ModelQuadFacing.UNASSIGNED.ordinal())
                     continue;
                 ChunkMeshBufferBuilderAccessor v = (ChunkMeshBufferBuilderAccessor) builder.getVertexBuffer(ModelQuadFacing.VALUES[i]);
-                if (v.getCount() > 0) {
-                    ByteBuffer buffer = ByteBuffer.allocateDirect(v.getStride() * v.getCount());
+                if (v.getVertexCount() > 0) {
+                    ByteBuffer buffer = ByteBuffer.allocateDirect(v.getStride() * v.getVertexCount());
                     ByteBuffer threadBuffer = v.getBuffer();
                     threadBuffer.limit(buffer.capacity());
                     MemoryUtil.memCopy(v.getBuffer(), buffer);
                     threadBuffer.limit(threadBuffer.capacity());
-                    holders[i] = new BufferHolder(buffer, buffer.limit(), v.getCount(), indexes[i].toIntArray());
+                    holders[i] = new BufferHolder(buffer, buffer.limit(), v.getVertexCount(), indexes[i].toIntArray());
                     indexes[i].clear();
                     
                     /*if (material.pass.isTranslucent()) { TODO Properly implement translucent stuff

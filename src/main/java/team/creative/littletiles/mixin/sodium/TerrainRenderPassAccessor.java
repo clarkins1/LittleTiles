@@ -10,6 +10,6 @@ import net.minecraft.client.renderer.RenderType;
 public interface TerrainRenderPassAccessor {
     
     @Accessor(remap = false)
-    public RenderType getLayer();
+    public RenderType getRenderType();
     
 }

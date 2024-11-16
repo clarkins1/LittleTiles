@@ -91,7 +91,7 @@ public class LevelSliceMixin implements LittleLevelSliceExtender {
             info.setReturnValue(PlatformModelAccess.getInstance().getModelDataContainer(overwrite, SectionPos.of(pos)).getModelData(pos));
     }
     
-    @Inject(at = @At("HEAD"), method = "getBiomeFabric(III)Lnet/minecraft/core/Holder;", cancellable = true, require = 1)
+    @Inject(at = @At("HEAD"), method = "getBiomeFabric(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Holder;", cancellable = true, require = 1)
     public void getBiomeFabric(BlockPos pos, CallbackInfoReturnable<Holder<Biome>> info) {
         if (overwrite != null)
             info.setReturnValue(overwrite.getBiome(pos));

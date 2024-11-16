@@ -7,8 +7,8 @@ import net.caffeinemc.mods.sodium.client.render.chunk.RenderSection;
 import net.caffeinemc.mods.sodium.client.render.chunk.data.BuiltSectionMeshParts;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.TerrainRenderPass;
 
-@Mixin(targets = "org/embeddedt/embeddium/impl/render/chunk/region/RenderRegionManager$PendingSectionUpload")
-public interface PendingSectionUploadAccessor {
+@Mixin(targets = "net/caffeinemc/mods/sodium/client/render/chunk/region/RenderRegionManager$PendingSectionMeshUpload")
+public interface PendingSectionMeshUploadAccessor {
     
     @Accessor(remap = false)
     public RenderSection getSection();

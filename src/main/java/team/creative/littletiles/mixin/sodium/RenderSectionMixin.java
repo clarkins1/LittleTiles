@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import org.lwjgl.opengl.GL15C;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -49,15 +50,19 @@ import team.creative.littletiles.client.render.mc.VertexBufferExtender;
 public abstract class RenderSectionMixin implements RenderChunkExtender {
     
     @Shadow(remap = false)
+    @Final
     private int sectionIndex;
     
     @Shadow(remap = false)
+    @Final
     private int chunkX;
     
     @Shadow(remap = false)
+    @Final
     private int chunkY;
     
     @Shadow(remap = false)
+    @Final
     private int chunkZ;
     
     @Shadow(remap = false)
@@ -131,7 +136,7 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
         SectionRenderDataStorageAccessor s = (SectionRenderDataStorageAccessor) storage;
         if (s == null)
             return null;
-        return s.getAllocations()[sectionIndex];
+        return s.getVertexAllocations()[sectionIndex];
     }
     
     public SectionRenderDataStorage getStorage(RenderRegion region, RenderType layer) {

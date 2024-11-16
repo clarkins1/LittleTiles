@@ -8,6 +8,7 @@ import net.caffeinemc.mods.sodium.client.model.color.ColorProviderRegistry;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.Material;
 import net.caffeinemc.mods.sodium.client.render.frapi.mesh.MutableQuadViewImpl;
+import net.caffeinemc.mods.sodium.client.render.frapi.render.AbstractBlockRenderContext;
 import team.creative.littletiles.client.mod.sodium.renderer.BlockRendererExtender;
 
 @Mixin(BlockRenderer.class)
@@ -17,21 +18,9 @@ public abstract class BlockRendererMixin implements BlockRendererExtender {
     @Final
     private ColorProviderRegistry colorProviderRegistry;
     
-    @Shadow
-    @Final
-    private MutableQuadViewImpl editorQuad;
-    
-    @Shadow
-    protected boolean useAmbientOcclusion;
-    
     @Override
-    public MutableQuadViewImpl getEditorQuad() {
-        return editorQuad;
-    }
-    
-    @Override
-    public boolean hasAmbientOcclusion() {
-        return useAmbientOcclusion;
+    public MutableQuadViewImpl getEditorQuadAndClear() {
+        return (MutableQuadViewImpl) ((AbstractBlockRenderContext) (Object) this).getEmitter();
     }
     
     @Override

@@ -73,7 +73,7 @@
         "sodium.GlBufferSegmentAccessor",
         "sodium.GLRenderDeviceAccessor",
         "sodium.LevelSliceMixin",
-        "sodium.PendingSectionUploadAccessor",
+        "sodium.PendingSectionMeshUploadAccessor",
         "sodium.RenderRegionManagerMixin",
         "sodium.RenderSectionManagerAccessor",
         "sodium.RenderSectionMixin",

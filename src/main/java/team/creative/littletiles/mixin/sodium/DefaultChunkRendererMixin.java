@@ -1,15 +1,12 @@
 package team.creative.littletiles.mixin.sodium;
 
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexAttributeBinding;
 import net.caffeinemc.mods.sodium.client.gl.device.CommandList;
 import net.caffeinemc.mods.sodium.client.gl.device.RenderDevice;
 import net.caffeinemc.mods.sodium.client.render.chunk.ChunkRenderMatrices;
@@ -45,16 +42,12 @@ public abstract class DefaultChunkRendererMixin extends ShaderChunkRenderer impl
         super.end(DefaultMaterials.forRenderLayer(layer).pass);
     }
     
-    @Shadow
-    @Final
-    private GlVertexAttributeBinding[] vertexAttributeBindings;
-    
     @Inject(at = @At(value = "INVOKE",
-            target = "Lorg/embeddedt/embeddium/impl/render/chunk/ShaderChunkRenderer;end(Lorg/embeddedt/embeddium/impl/render/chunk/terrain/TerrainRenderPass;)V", remap = false),
-            method = "render", remap = false)
+            target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/ShaderChunkRenderer;end(Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/TerrainRenderPass;)V",
+            remap = false), method = "render", remap = false)
     public void render(ChunkRenderMatrices matrices, CommandList commandList, ChunkRenderListIterable renderLists, TerrainRenderPass renderPass, CameraTransform camera,
             CallbackInfo info) {
-        var bindings = vertexAttributeBindings;
+        var bindings = vertexFormat.getShaderBindings();
         //if (bindings == null && OculusManager.installed()) {
         //    bindings = (GlVertexAttributeBinding[]) OculusManager.createVertexFormat(vertexFormat);
         //}
@@ -77,7 +70,7 @@ public abstract class DefaultChunkRendererMixin extends ShaderChunkRenderer impl
                 pose.pushPose();
                 animation.getOrigin().setupRendering(pose, camera.x, camera.y, camera.z, partialTicks);
                 shader.setModelViewMatrix(pose.last().pose());
-                r.renderChunkLayerSodium(((TerrainRenderPassAccessor) renderPass).getLayer(), pose, camera.x, camera.y, camera.z, matrices.projection(), shader, camera);
+                r.renderChunkLayerSodium(((TerrainRenderPassAccessor) renderPass).getRenderType(), pose, camera.x, camera.y, camera.z, matrices.projection(), shader, camera);
                 pose.popPose();
                 
             }

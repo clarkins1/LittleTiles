@@ -1,8 +1,7 @@
 package team.creative.littletiles.mixin.sodium;
 
-import org.spongepowered.asm.mixin.Final;
+import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,6 +14,7 @@ import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildContext;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildOutput;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderMeshingTask;
+import net.caffeinemc.mods.sodium.client.render.chunk.compile.tasks.ChunkBuilderTask;
 import net.caffeinemc.mods.sodium.client.render.chunk.data.BuiltSectionMeshParts;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.TerrainRenderPass;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.DefaultMaterials;
@@ -34,11 +34,7 @@ import team.creative.littletiles.client.render.mc.RenderChunkExtender;
 import team.creative.littletiles.common.block.entity.BETiles;
 
 @Mixin(ChunkBuilderMeshingTask.class)
-public class ChunkBuilderMeshingTaskMixin {
-    
-    @Shadow(remap = false)
-    @Final
-    private RenderSection render;
+public abstract class ChunkBuilderMeshingTaskMixin extends ChunkBuilderTask<ChunkBuildOutput> {
     
     @Unique
     public ChunkLayerMap<BufferCollection> caches;
@@ -46,22 +42,26 @@ public class ChunkBuilderMeshingTaskMixin {
     @Unique
     public ChunkBuildContext buildContext;
     
+    private ChunkBuilderMeshingTaskMixin(RenderSection render, int time, Vector3dc absoluteCameraPos) {
+        super(render, time, absoluteCameraPos);
+    }
+    
     @Inject(at = @At("TAIL"), remap = false, require = 1,
-            method = "<init>(Lorg/embeddedt/embeddium/impl/render/chunk/RenderSection;Lorg/embeddedt/embeddium/impl/world/cloned/ChunkRenderContext;I)V")
-    public void onCreated(RenderSection render, ChunkRenderContext renderContext, int time, CallbackInfo info) {
+            method = "<init>(Lnet/caffeinemc/mods/sodium/client/render/chunk/RenderSection;ILorg/joml/Vector3dc;Lnet/caffeinemc/mods/sodium/client/world/cloned/ChunkRenderContext;)V")
+    public void onCreated(RenderSection render, int time, Vector3dc absoluteCameraPos, ChunkRenderContext renderContext, CallbackInfo info) {
         LittleRenderPipelineType.startCompile((RenderChunkExtender) render);
     }
     
     @Inject(at = @At("HEAD"), remap = false, require = 1,
-            method = "execute(Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildContext;Lorg/embeddedt/embeddium/impl/util/task/CancellationToken;)Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildOutput;")
+            method = "execute(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildContext;Lnet/caffeinemc/mods/sodium/client/util/task/CancellationToken;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildOutput;")
     public void performBuildStart(ChunkBuildContext buildContext, CancellationToken cancellationSource, CallbackInfoReturnable<ChunkBuildOutput> info) {
         this.buildContext = buildContext;
     }
     
     @Redirect(
-            method = "execute(Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildContext;Lorg/embeddedt/embeddium/impl/util/task/CancellationToken;)Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildOutput;",
+            method = "execute(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildContext;Lnet/caffeinemc/mods/sodium/client/util/task/CancellationToken;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildOutput;",
             remap = false, require = 1, at = @At(value = "INVOKE",
-                    target = "Lorg/embeddedt/embeddium/impl/world/WorldSlice;getBlockEntity(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;",
+                    target = "Lnet/caffeinemc/mods/sodium/client/world/LevelSlice;getBlockEntity(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/entity/BlockEntity;",
                     remap = true))
     public BlockEntity getBlockEntity(LevelSlice slice, BlockPos pos) {
         BlockEntity entity = slice.getBlockEntity(pos);
@@ -72,7 +72,7 @@ public class ChunkBuilderMeshingTaskMixin {
     }
     
     @Inject(at = @At("TAIL"), remap = false, require = 1,
-            method = "execute(Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildContext;Lorg/embeddedt/embeddium/impl/util/task/CancellationToken;)Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildOutput;")
+            method = "execute(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildContext;Lnet/caffeinemc/mods/sodium/client/util/task/CancellationToken;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildOutput;")
     public void performBuildEnd(ChunkBuildContext buildContext, CancellationToken cancellationSource, CallbackInfoReturnable<ChunkBuildOutput> info) {
         LittleRenderPipelineType.endCompile((RenderChunkExtender) render);
         this.buildContext = null;
@@ -80,13 +80,13 @@ public class ChunkBuilderMeshingTaskMixin {
     }
     
     @Redirect(
-            method = "execute(Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildContext;Lorg/embeddedt/embeddium/impl/util/task/CancellationToken;)Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildOutput;",
+            method = "execute(Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildContext;Lnet/caffeinemc/mods/sodium/client/util/task/CancellationToken;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildOutput;",
             remap = false, at = @At(value = "INVOKE",
-                    target = "Lorg/embeddedt/embeddium/impl/render/chunk/compile/ChunkBuildBuffers;createMesh(Lorg/embeddedt/embeddium/impl/render/chunk/terrain/TerrainRenderPass;Z)Lorg/embeddedt/embeddium/impl/render/chunk/data/BuiltSectionMeshParts;"))
+                    target = "Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;createMesh(Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/TerrainRenderPass;Z)Lnet/caffeinemc/mods/sodium/client/render/chunk/data/BuiltSectionMeshParts;"))
     public BuiltSectionMeshParts createMesh(ChunkBuildBuffers buffers, TerrainRenderPass pass, boolean forceUnassigned) {
         BuiltSectionMeshParts parts = buffers.createMesh(pass, forceUnassigned);
         if (parts != null && caches != null)
-            ((BuiltSectionMeshPartsExtender) parts).setBuffers(caches.get(((TerrainRenderPassAccessor) pass).getLayer()));
+            ((BuiltSectionMeshPartsExtender) parts).setBuffers(caches.get(((TerrainRenderPassAccessor) pass).getRenderType()));
         return parts;
     }
     

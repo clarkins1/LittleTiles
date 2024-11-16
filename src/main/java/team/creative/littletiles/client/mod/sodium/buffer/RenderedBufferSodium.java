@@ -73,8 +73,4 @@ public class RenderedBufferSodium implements AutoCloseable, ChunkBufferUploader 
         MemoryUtil.memFree(buffer);
     }
     
-    @Override
-    public boolean isSorted() {
-        return false;
-    }
 }

@@ -104,9 +104,4 @@ public class SodiumChunkBufferUploader implements ChunkBufferUploader {
         return buffer;
     }
     
-    @Override
-    public boolean isSorted() {
-        return false;
-    }
-    
 }

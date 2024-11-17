@@ -139,6 +139,8 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
         ColorProviderRegistry colorProvider = ((BlockRendererExtender) renderer).colorRegistry();
         data.prepareModelOffset(modelOffset, pos);
         
+        ((BlockRendererExtender) renderer).setOffset(modelOffset);
+        
         MutableQuadViewImpl editorQuad = ((BlockRendererExtender) renderer).getEditorQuadAndClear();
         
         // Render vertex buffer
@@ -197,26 +199,24 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
                             
                             RenderMaterial mat = editorQuad.material();
                             
-                            { // Color
-                                boolean hasColor = false;
-                                if (cube.color != -1) {
-                                    int color = ColorABGR.pack(ColorUtils.red(cube.color), ColorUtils.green(cube.color), ColorUtils.blue(cube.color), ColorUtils.alpha(cube.color));
-                                    Arrays.fill(colors, color);
-                                    hasColor = true;
-                                } else if (!mat.disableColorIndex() && editorQuad.hasColor()) {
-                                    if (colorizer == null)
-                                        colorizer = colorProvider.getColorProvider(state.getBlock());
-                                    
-                                    colorizer.getColors(slice, pos, scratchColorPos, state, editorQuad, colors);
-                                    hasColor = true;
-                                } else
-                                    Arrays.fill(colors, -1);
+                            boolean hasColor = false;
+                            if (cube.color != -1) {
+                                int color = ColorABGR.pack(ColorUtils.red(cube.color), ColorUtils.green(cube.color), ColorUtils.blue(cube.color), ColorUtils.alpha(cube.color));
+                                Arrays.fill(colors, color);
+                                hasColor = true;
+                            } else if (!mat.disableColorIndex() && editorQuad.hasColor()) {
+                                if (colorizer == null)
+                                    colorizer = colorProvider.getColorProvider(state.getBlock());
                                 
-                                if (hasColor)
-                                    for (int i = 0; i < 4; ++i)
-                                        editorQuad.color(i, ColorHelper.multiplyColor(colors[i], editorQuad.color(i)));
-                            }
+                                colorizer.getColors(slice, pos, scratchColorPos, state, editorQuad, colors);
+                                hasColor = true;
+                            } else
+                                Arrays.fill(colors, -1);
                             
+                            if (hasColor)
+                                for (int i = 0; i < 4; ++i)
+                                    editorQuad.color(i, ColorHelper.multiplyColor(colors[i], editorQuad.color(i)));
+                                
                             lighter.calculate(editorQuad, pos, cachedQuadLightData, editorQuad.cullFace(), editorQuad.lightFace(), editorQuad.hasShade(), mat
                                     .shadeMode() == ShadeMode.ENHANCED);
                             if (mat.emissive())

@@ -12,6 +12,7 @@ import net.caffeinemc.mods.sodium.client.model.color.ColorProviderRegistry;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.buffers.ChunkModelBuilder;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.BlockRenderer;
 import net.caffeinemc.mods.sodium.client.render.chunk.terrain.material.Material;
+import net.caffeinemc.mods.sodium.client.render.chunk.translucent_sorting.TranslucentGeometryCollector;
 import net.caffeinemc.mods.sodium.client.render.frapi.mesh.MutableQuadViewImpl;
 import net.caffeinemc.mods.sodium.client.render.frapi.render.AbstractBlockRenderContext;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -30,6 +31,9 @@ public abstract class BlockRendererMixin implements BlockRendererExtender {
     @Shadow
     @Final
     private ColorProviderRegistry colorProviderRegistry;
+    
+    @Shadow
+    private TranslucentGeometryCollector collector;
     
     @Override
     public void setOffset(float x, float y, float z) {
@@ -70,6 +74,11 @@ public abstract class BlockRendererMixin implements BlockRendererExtender {
         if (takenOver)
             return;
         builder.addSprite(sprite);
+    }
+    
+    @Override
+    public TranslucentGeometryCollector getTranslucentCollector() {
+        return collector;
     }
     
 }

@@ -248,8 +248,6 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
             BufferHolder[] holders = new BufferHolder[ModelQuadFacing.COUNT];
             int count = indexes[0].size() / 2;
             for (int i = 0; i < indexes.length; i++) {
-                if (material.pass.isTranslucent() && i != ModelQuadFacing.UNASSIGNED.ordinal())
-                    continue;
                 ChunkMeshBufferBuilderAccessor v = (ChunkMeshBufferBuilderAccessor) builder.getVertexBuffer(ModelQuadFacing.VALUES[i]);
                 if (v.getVertexCount() > 0) {
                     ByteBuffer buffer = ByteBuffer.allocateDirect(v.getStride() * v.getVertexCount());
@@ -259,16 +257,6 @@ public class LittleRenderPipelineSodium extends LittleRenderPipeline {
                     threadBuffer.limit(threadBuffer.capacity());
                     holders[i] = new BufferHolder(buffer, buffer.limit(), v.getVertexCount(), indexes[i].toIntArray());
                     indexes[i].clear();
-                    
-                    /*if (material.pass.isTranslucent()) { TODO Properly implement translucent stuff
-                        var centers = ((TranslucentQuadAnalyzerAccessor) context.collector).getQuadCenters();
-                        ByteBuffer centerBuffer = ByteBuffer.allocateDirect(centers.size() * 4);
-                        for (int j = 0; j < centers.size(); j++)
-                            centerBuffer.putFloat(centers.getFloat(j));
-                        centerBuffer.rewind();
-                        holders[0] = new BufferHolder(centerBuffer, 0, 0, null);
-                        centers.clear(); // Reset for next renderer
-                    }*/
                 }
             }
             

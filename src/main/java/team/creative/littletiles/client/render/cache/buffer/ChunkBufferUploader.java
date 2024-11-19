@@ -16,6 +16,6 @@ public interface ChunkBufferUploader {
     
     public void upload(int facing, ByteBuffer buffer);
     
-    public void addSprite(TextureAtlasSprite texture);
+    public void addTexture(TextureAtlasSprite texture);
     
 }

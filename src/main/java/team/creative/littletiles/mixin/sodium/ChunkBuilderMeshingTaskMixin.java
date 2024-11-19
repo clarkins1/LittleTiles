@@ -26,9 +26,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import team.creative.creativecore.common.util.type.map.ChunkLayerMap;
+import team.creative.littletiles.client.mod.sodium.buffer.SodiumBufferUploader;
 import team.creative.littletiles.client.mod.sodium.data.BuiltSectionMeshPartsExtender;
+import team.creative.littletiles.client.mod.sodium.renderer.BlockRendererExtender;
 import team.creative.littletiles.client.render.cache.buffer.BufferCollection;
-import team.creative.littletiles.client.render.cache.buffer.ChunkBufferUploader;
 import team.creative.littletiles.client.render.cache.pipeline.LittleRenderPipelineType;
 import team.creative.littletiles.client.render.mc.RenderChunkExtender;
 import team.creative.littletiles.common.block.entity.BETiles;
@@ -66,8 +67,12 @@ public abstract class ChunkBuilderMeshingTaskMixin extends ChunkBuilderTask<Chun
     public BlockEntity getBlockEntity(LevelSlice slice, BlockPos pos) {
         BlockEntity entity = slice.getBlockEntity(pos);
         if (entity instanceof BETiles be)
-            LittleRenderPipelineType.compile(SectionPos.asLong(render.getChunkX(), render.getChunkY(), render.getChunkZ()), be, x -> (ChunkBufferUploader) buildContext.buffers.get(
-                DefaultMaterials.forRenderLayer(x)), x -> getOrCreateBuffers(x));
+            LittleRenderPipelineType.compile(SectionPos.asLong(render.getChunkX(), render.getChunkY(), render.getChunkZ()), be, x -> {
+                SodiumBufferUploader uploader = (SodiumBufferUploader) buildContext.buffers.get(DefaultMaterials.forRenderLayer(x));
+                if (x == RenderType.translucent())
+                    uploader.setTranslucentCollector(((BlockRendererExtender) buildContext.cache.getBlockRenderer()).getTranslucentCollector());
+                return uploader;
+            }, x -> getOrCreateBuffers(x));
         return entity;
     }
     

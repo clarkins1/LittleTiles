@@ -38,8 +38,8 @@ import net.minecraft.core.BlockPos;
 import team.creative.creativecore.common.util.type.list.Tuple;
 import team.creative.creativecore.common.util.type.map.ChunkLayerMap;
 import team.creative.littletiles.LittleTiles;
+import team.creative.littletiles.client.mod.sodium.buffer.SodiumAppendChunkBufferUploader;
 import team.creative.littletiles.client.mod.sodium.buffer.SodiumChunkBufferDownloader;
-import team.creative.littletiles.client.mod.sodium.buffer.SodiumChunkBufferUploader;
 import team.creative.littletiles.client.render.cache.LayeredBufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferCollection;
@@ -232,7 +232,7 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
         RenderRegion region = getRenderRegion();
         ChunkBuilderAccessor chunkBuilder = (ChunkBuilderAccessor) manager.getBuilder();
         GlVertexFormat format = ((ChunkBuildBuffersAccessor) chunkBuilder.getLocalContext().buffers).getVertexType().getVertexFormat();
-        SodiumChunkBufferUploader uploader = new SodiumChunkBufferUploader();
+        SodiumAppendChunkBufferUploader uploader = new SodiumAppendChunkBufferUploader();
         
         for (RenderType layer : RenderType.chunkBufferLayers()) {
             
@@ -252,8 +252,7 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
                 vanillaBuffer = downloadSegment(segment, format);
             
             if (segment == null) {
-                if (layer != RenderType.translucent()) // With special sorting enabled the data cannot be retrieved
-                    LittleTiles.LOGGER.error("Failed to download chunk data. chunk: {}, layer: {}", this, layer);
+                LittleTiles.LOGGER.error("Failed to download chunk data. chunk: {}, layer: {}", this, layer);
                 continue;
             }
             
@@ -266,6 +265,8 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
             
             if (segment != null) // Meshes needs to be removed after the uploader has collected the data
                 storage.removeData(sectionIndex);
+            
+            //uploader.setTranslucentCollector(layer == RenderType.translucent() ? new TranslucentGeometryCollector(((RenderSection) (Object) this).getPosition()) : null);
             
             for (LayeredBufferCache layeredCache : blocks) {
                 BufferCache cache = layeredCache.get(layer);
@@ -292,6 +293,12 @@ public abstract class RenderSectionMixin implements RenderChunkExtender {
                 region.refreshTesselation(commandList);
             
             storage.setVertexData(sectionIndex, upload.getResult(), uploader.ranges());
+            
+            /*if (layer == RenderType.translucent()) {
+                var translucentData = ((RenderSection) (Object) this).getTranslucentData();
+                if(translucentData instanceof DynamicData data)
+                    uploader.getTranslucentCollector().
+            }*/
             
             if (!active)
                 RenderDevice.exitManagedCode();

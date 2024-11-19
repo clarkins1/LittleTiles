@@ -8,18 +8,19 @@ import java.util.List;
 import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexFormat;
 import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
 import net.caffeinemc.mods.sodium.client.render.chunk.data.SectionRenderDataUnsafe;
+import net.caffeinemc.mods.sodium.client.render.chunk.translucent_sorting.TranslucentGeometryCollector;
 import net.caffeinemc.mods.sodium.client.util.NativeBuffer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import team.creative.littletiles.client.render.cache.buffer.ChunkBufferUploader;
 
-public class SodiumChunkBufferUploader implements ChunkBufferUploader {
+public class SodiumAppendChunkBufferUploader implements SodiumBufferUploader {
     
     private ByteBuffer[] buffers = new ByteBuffer[ModelQuadFacing.COUNT];
     private NativeBuffer buffer;
     private int[] ranges = new int[ModelQuadFacing.COUNT];
     private List<TextureAtlasSprite> sprites;
+    private TranslucentGeometryCollector collector;
     
-    public SodiumChunkBufferUploader() {}
+    public SodiumAppendChunkBufferUploader() {}
     
     public void set(long data, GlVertexFormat format, long offset, ByteBuffer exisitingData, int extraLength, int[] extraLengthFacing, TextureAtlasSprite[] existing) {
         buffer = new NativeBuffer((exisitingData != null ? exisitingData.limit() : 0) + extraLength);
@@ -56,7 +57,7 @@ public class SodiumChunkBufferUploader implements ChunkBufferUploader {
     }
     
     @Override
-    public void addSprite(TextureAtlasSprite texture) {
+    public void addTexture(TextureAtlasSprite texture) {
         if (sprites == null)
             sprites = new ArrayList<>();
         if (!sprites.contains(texture))
@@ -102,6 +103,21 @@ public class SodiumChunkBufferUploader implements ChunkBufferUploader {
     
     public NativeBuffer buffer() {
         return buffer;
+    }
+    
+    @Override
+    public boolean isSorted() {
+        return collector != null;
+    }
+    
+    @Override
+    public TranslucentGeometryCollector getTranslucentCollector() {
+        return collector;
+    }
+    
+    @Override
+    public void setTranslucentCollector(TranslucentGeometryCollector collector) {
+        this.collector = collector;
     }
     
 }

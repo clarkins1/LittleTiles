@@ -5,9 +5,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.lwjgl.system.MemoryUtil;
+
+import net.caffeinemc.mods.sodium.client.gl.attribute.GlVertexAttributeFormat;
 import net.caffeinemc.mods.sodium.client.model.quad.properties.ModelQuadFacing;
+import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
+import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.impl.CompactChunkVertex;
+import net.caffeinemc.mods.sodium.client.render.chunk.vertex.format.impl.DefaultChunkMeshAttributes;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.world.phys.Vec3;
+import team.creative.littletiles.client.mod.sodium.SodiumInteractor;
+import team.creative.littletiles.client.mod.sodium.data.LittleQuadView;
+import team.creative.littletiles.client.mod.sodium.pipeline.LittleRenderPipelineSodium;
 import team.creative.littletiles.client.render.cache.buffer.BufferCache;
 import team.creative.littletiles.client.render.cache.buffer.BufferHolder;
 import team.creative.littletiles.client.render.cache.buffer.ChunkBufferDownloader;
@@ -72,26 +81,32 @@ public class SodiumBufferCache implements BufferCache {
         if (buffer == null)
             return;
         
-        /*long ptr = MemoryUtil.memAddress(buffer); TODO Readd translucent stuff
+        long ptr = MemoryUtil.memAddress(buffer);
         int i = 0;
         while (i < buffer.limit()) {
-            float x = CompactChunkVertex.decodePosition(MemoryUtil.memGetShort(ptr + 0));
-            MemoryUtil.memPutShort(ptr + 0, CompactChunkVertexAccessor.callEncodePosition(x + (float) vec.x));
-            float y = CompactChunkVertex.decodePosition(MemoryUtil.memGetShort(ptr + 2));
-            MemoryUtil.memPutShort(ptr + 2, CompactChunkVertexAccessor.callEncodePosition(y + (float) vec.y));
-            float z = CompactChunkVertex.decodePosition(MemoryUtil.memGetShort(ptr + 4));
-            MemoryUtil.memPutShort(ptr + 4, CompactChunkVertexAccessor.callEncodePosition(z + (float) vec.z));
+            int hi = MemoryUtil.memGetInt(ptr + 0);
+            int lo = MemoryUtil.memGetInt(ptr + 4);
+            float x = SodiumInteractor.unpackPositionX(hi, lo) + (float) vec.x;
+            float y = SodiumInteractor.unpackPositionY(hi, lo) + (float) vec.y;
+            float z = SodiumInteractor.unpackPositionZ(hi, lo) + (float) vec.z;
+            
+            int quantX = SodiumInteractor.quantizePosition(x);
+            int quantY = SodiumInteractor.quantizePosition(y);
+            int quantZ = SodiumInteractor.quantizePosition(z);
+            
+            MemoryUtil.memPutInt(ptr + 0L, SodiumInteractor.packPositionHi(quantX, quantY, quantZ));
+            MemoryUtil.memPutInt(ptr + 4L, SodiumInteractor.packPositionLo(quantX, quantY, quantZ));
             ptr += CompactChunkVertex.STRIDE;
             i += CompactChunkVertex.STRIDE;
-        }*/
+        }
     }
     
     @Override
     public void applyOffset(Vec3 vec) {
-        /*if (SodiumOptions.canUseVanillaVertices()) { TODO Think about if this is an option in Sodium
-            for (int i = 0; i < buffers.length; i++)
-                if (buffers[i] != null)
-                    buffers[i].applyOffset(vec);
+        /* if (SodiumOptions.canUseVanillaVertices()) { TODO Check for option and iris support
+        for (int i = 0; i < buffers.length; i++)
+            if (buffers[i] != null)
+                buffers[i].applyOffset(vec);
             return;
         }*/
         for (int i = 0; i < buffers.length; i++)
@@ -148,54 +163,36 @@ public class SodiumBufferCache implements BufferCache {
     @Override
     public boolean upload(ChunkBufferUploader uploader) {
         for (TextureAtlasSprite texture : textures)
-            uploader.addSprite(texture);
+            uploader.addTexture(texture);
         
         if (uploader.hasFacingSupport()) {
-            /*if (uploader.isSorted()) { TODO Readd Translucent stuff
-                ChunkMeshBufferBuilderAccessor builder = (ChunkMeshBufferBuilderAccessor) ((ChunkModelBuilder) uploader).getVertexBuffer(ModelQuadFacing.UNASSIGNED);
-                //var centers = ((TranslucentQuadAnalyzerAccessor) builder.getAnalyzer()).getQuadCenters();
-                int index = ModelQuadFacing.UNASSIGNED.ordinal();
-                if (buffers[index] == null || buffers[index].byteBuffer() == null)
-                    return false;
+            if (uploader instanceof SodiumBufferUploader u && u.isSorted()) {
+                ChunkVertexType type = LittleRenderPipelineSodium.getType();
+                var positionAttribute = type.getVertexFormat().getAttribute(DefaultChunkMeshAttributes.POSITION);
+                boolean compact = positionAttribute.getFormat() == GlVertexAttributeFormat.UNSIGNED_INT.typeId() && positionAttribute.getCount() == 2;
+                int stride = type.getVertexFormat().getStride();
+                int strideRemaining = stride - (compact ? GlVertexAttributeFormat.UNSIGNED_INT.size() * 2 : GlVertexAttributeFormat.FLOAT.size() * 3);
+                LittleQuadView quad = new LittleQuadView();
                 
-                ByteBuffer buffer = buffers[0] != null ? buffers[0].byteBuffer() : null;
-                if (buffer == null) { // Recalculate centers
-                    ChunkVertexType type = LittleRenderPipelineSodium.getType();
-                    ByteBuffer renderData = buffers[index].byteBuffer();
-                    var positionAttribute = type.getVertexFormat().getAttribute(DefaultChunkMeshAttributes.POSITION);
-                    boolean compact = positionAttribute.getFormat() == GlVertexAttributeFormat.UNSIGNED_SHORT.typeId();
-                    int stride = type.getVertexFormat().getStride();
-                    int strideRemaining = stride - (compact ? GlVertexAttributeFormat.UNSIGNED_SHORT.size() : GlVertexAttributeFormat.FLOAT.size()) * 3;
-                    ChunkVertexEncoder.Vertex vertex = new ChunkVertexEncoder.Vertex();
-                    var trans = builder.getAnalyzer();
+                for (int i = 0; i < buffers.length; i++) {
+                    if (buffers[i] == null)
+                        continue;
                     
-                    while (renderData.hasRemaining()) {
-                        if (compact) {
-                            vertex.x = CompactChunkVertex.decodePosition(renderData.getShort());
-                            vertex.y = CompactChunkVertex.decodePosition(renderData.getShort());
-                            vertex.z = CompactChunkVertex.decodePosition(renderData.getShort());
-                        } else {
-                            vertex.x = renderData.getFloat();
-                            vertex.y = renderData.getFloat();
-                            vertex.z = renderData.getFloat();
-                        }
-                        trans.capture(vertex);
-                        int newPosition = renderData.position() + strideRemaining;
-                        if (newPosition >= renderData.limit())
-                            break;
-                        renderData.position(newPosition);
+                    if (!buffers[i].upload(i, uploader))
+                        return false; // Something went wrong
+                        
+                    // Add translucent data by going through the buffers, collecting the quads and adding to the translucent collector
+                    ModelQuadFacing facing = ModelQuadFacing.values()[i];
+                    ByteBuffer buffer = buffers[i].byteBuffer();
+                    var collector = u.getTranslucentCollector();
+                    
+                    while (buffer.hasRemaining()) {
+                        quad.readVertices(buffer, compact, strideRemaining, facing);
+                        collector.appendQuad(quad.getPackedNormal(), quad.getVertices(), facing);
                     }
-                    renderData.rewind();
-                } else {
-                    while (buffer.hasRemaining())
-                        centers.add(buffer.getFloat());
                     buffer.rewind();
                 }
-                
-                buffers[0] = null;
-                
-                return buffers[index].upload(index, uploader);
-            }*/
+            }
             for (int i = 0; i < buffers.length; i++)
                 if (buffers[i] != null && !buffers[i].upload(i, uploader))
                     return false;

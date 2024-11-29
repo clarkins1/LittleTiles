@@ -13,7 +13,6 @@ import team.creative.creativecore.common.util.filter.premade.BlockFilters;
 import team.creative.creativecore.common.util.ingredient.CreativeIngredient;
 import team.creative.creativecore.common.util.ingredient.CreativeIngredientBlock;
 import team.creative.creativecore.common.util.ingredient.CreativeIngredientItem;
-import team.creative.creativecore.common.util.ingredient.CreativeIngredientItemStack;
 import team.creative.littletiles.LittleTilesRegistry;
 
 public class BlankOMaticRecipeRegistry {
@@ -54,9 +53,9 @@ public class BlankOMaticRecipeRegistry {
         registerBleacher(new CreativeIngredientBlock(Blocks.WHITE_WOOL), 8);
         registerBleacher(new CreativeIngredientBlock(Blocks.LIGHT_GRAY_WOOL), 4);
         registerBleacher(new CreativeIngredientBlock(Blocks.GRAY_WOOL), 2);
-        registerBleacher(new CreativeIngredientItemStack(new ItemStack(Blocks.AZURE_BLUET), false), 4); // Azure Bluet
-        registerBleacher(new CreativeIngredientItemStack(new ItemStack(Blocks.OXEYE_DAISY), false), 4); // Oxeye Daisy
-        registerBleacher(new CreativeIngredientItemStack(new ItemStack(Blocks.WHITE_TULIP), false), 4);
+        registerBleacher(new CreativeIngredientItem(Items.AZURE_BLUET), 4); // Azure Bluet
+        registerBleacher(new CreativeIngredientItem(Items.OXEYE_DAISY), 4); // Oxeye Daisy
+        registerBleacher(new CreativeIngredientItem(Items.WHITE_TULIP), 4);
         
         registerBleacher(new CreativeIngredientItem(Items.SUGAR), 1);
         

@@ -104,8 +104,9 @@ public class LittleRenderPipelineForge extends LittleRenderPipeline {
                 if (!LittleTiles.CONFIG.rendering.useQuadCache)
                     cube.deleteQuadCache();
             }
-            
-            buffers.put(entry.key, new BufferHolder(builder.buildOrThrow(), indexes.toIntArray()));
+            var mesh = builder.build();
+            if (mesh != null)
+                buffers.put(entry.key, new BufferHolder(mesh, indexes.toIntArray()));
         }
         
         ((CreativeQuadLighter) lighter).setCustomTint(-1);

@@ -12,6 +12,10 @@ license="LGPL-3.0-only"
     authors="CreativeMD, N247S"
     description='''#BuildItYourself'''
 
+["lithium:options"]
+    "mixin.shapes.specialized_shapes" = false
+    "mixin.entity.collisions" = false
+
 [[dependencies.littletiles]]
     modId="neoforge"
     type="required"
